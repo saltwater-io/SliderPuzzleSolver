@@ -8,13 +8,18 @@ import copy
 # Class for structure node builder for each state of puzzle
 # Holds state, the state in maze I.E 60 would be the entry 'E' for the maze
 class Node(NodeMixin):
+    state_array = []
+    position = ''
+    depth = 0
+    visited_states = []
+    heuristic = None
 
-    def __init__(self, state_array, position, depth, path, heuristic=None):
+    def __init__(self, state_array, position, depth, visited_states, heuristic=None):
         self.state_array = state_array
         self.position = position
         self.depth = depth  # increment per slide
         self.heuristic = heuristic
-        self.path = path  # each tile that moves in solution
+        self.visited_states = visited_states  # each tile that moves in solution
 
 
 # Generic stack: code taken from http://interactivepython.org/courselib/static/pythonds/BasicDS/ImplementingaStackinPython.html
@@ -63,13 +68,15 @@ def check_piece(piece, puz):
 def find_open_position(puzzle):
     for i in range(3):  # i = column #, j = row
         for j in range(3):
-            if puzzle[i][j] == 0:
+            if puzzle[i][j] == '0':
                 entry = str(i) + str(j)  # beginning state of puzzle
     return entry
 
 
 def begin():
+    print(" ")
     print("Hello, this program solves a 3x3 slider puzzle!")
+    print(" ")
     print("To generate a random, solvable puzzle please enter 'n'!  ")
 
     user_input = input("Would you like to input your own maze using non repeating numbers 0-8?: y/n  ")
@@ -130,7 +137,7 @@ def begin():
     choice = str(choice).upper()
 
     while choice != 'X' and choice != '1' and choice != '2' and choice != '3' and choice != '4':
-        print()
+        print(" ")
         choice = input("Please choose 1, 2, 3, 4, or X to quit! ")
 
     while choice != 'X':
@@ -152,8 +159,9 @@ def solve_queue(puzzle):
     queue = deque([])
     visited_states = []
     depth = 0
+    puzzle = to_2d_array(puzzle)
     start = timer()
-    node = Node(to_2d_array(puzzle), find_open_position(puzzle), depth, visited_states)
+    node = Node(puzzle, find_open_position(puzzle), depth, visited_states)
     visited_states.append(node.state_array)
     queue.append(node)
     node = queue.popleft()
@@ -161,7 +169,7 @@ def solve_queue(puzzle):
         children = get_children(node)
         for child in children:
             visited_states.append(child)
-            new_node = Node(child, find_open_position(puzzle), node.depth + 1, visited_states)
+            new_node = Node(child, find_open_position(child), node.depth + 1, visited_states)
             queue.append(new_node)
         node = queue.popleft()
     end = timer()
@@ -174,7 +182,8 @@ def solve_stack(puzzle):
     start = timer()
     visited_states = []
     depth = 0
-    node = Node(to_2d_array(puzzle), find_open_position(puzzle), depth, visited_states)
+    puzzle = to_2d_array(puzzle)
+    node = Node(puzzle, find_open_position(puzzle), depth, visited_states)
     stack.push(node)
     node = stack.pop()
     while node.state_array != GOAL_STATE:
@@ -184,6 +193,7 @@ def solve_stack(puzzle):
             new_node = Node(child, find_open_position(puzzle), node.depth + 1, visited_states)
             stack.push(new_node)
         node = stack.pop()
+
     end = timer()
     time = start - end
     print("Depth First Search solution found in: " + str(time))
@@ -225,7 +235,6 @@ def get_children(node):
     state = node.state_array
     children = []  # List of possible moves after
     possible_moves = []  # Temp List of possible moves
-    temp_state = ''
     r = int(node.position[0])  # Row
     c = int(node.position[1])  # Column
 
@@ -277,14 +286,13 @@ def get_children(node):
 
 
 def to_2d_array(puz):
-    puzzle = ['0'] * 3
+    puzzle = [['0', '0', '0'], ['0', '0', '0'], ['0', '0', '0']]
     count = 0
-    for p in puzzle:
-        puzzle[p] = ['0'] * 3
     for i in range(3):
         for j in range(3):
             puzzle[i][j] = puz[count]
             count += 1
+    return puzzle
 
 
 def slide_tiles(state, current, move):
@@ -298,6 +306,7 @@ def slide_tiles(state, current, move):
 # Function checks if move is valid
 #
 def is_valid_move(state, current, move, visited_states):
+
     temp_state = copy.deepcopy(state)
 
     temp_state[int(current[0])][int(current[1])], temp_state[int(move[0])][int(move[1])] = \
