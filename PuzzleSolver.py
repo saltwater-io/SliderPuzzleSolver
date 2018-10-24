@@ -1,16 +1,15 @@
 from _collections import deque
-import time
 import random
 from anytree import NodeMixin
 from timeit import default_timer as timer
+import copy
 
 
 # Class for structure node builder for each state of puzzle
 # Holds state, the state in maze I.E 60 would be the entry 'E' for the maze
 class Node(NodeMixin):
 
-    def __init__(self, state, state_array, position, depth, path, heuristic=None):
-        self.state = state
+    def __init__(self, state_array, position, depth, path, heuristic=None):
         self.state_array = state_array
         self.position = position
         self.depth = depth  # increment per slide
@@ -43,6 +42,7 @@ class Stack:
 GOAL_STATE = [['1', '2', '3'], ['4', '5', '6'], ['7', '8', '0']]
 default_puzzle = []
 
+
 def check_piece(piece, puz):
     valid_nums = ['0', '1', '2', '3', '4', '5', '6', '7', '8']
 
@@ -60,7 +60,7 @@ def check_piece(piece, puz):
     pass
 
 
-def find_starting_state(puzzle):
+def find_open_position(puzzle):
     for i in range(3):  # i = column #, j = row
         for j in range(3):
             if puzzle[i][j] == 0:
@@ -69,7 +69,6 @@ def find_starting_state(puzzle):
 
 
 def begin():
-
     print("Hello, this program solves a 3x3 slider puzzle!")
     print("To generate a random, solvable puzzle please enter 'n'!  ")
 
@@ -117,7 +116,6 @@ def begin():
         print("Solvable puzzle has been generated! ")
         print("Order of pieces: " + print_puzzle(puzzle))
 
-
     print("There are four available options to solve the puzzle: ")
     print("")
     print("Option 1: Breath First Search.")
@@ -150,28 +148,45 @@ def begin():
             solve_manhattan(puzzle)
 
 
-
-
 def solve_queue(puzzle):
     queue = deque([])
     visited_states = []
+    depth = 0
     start = timer()
-    node = Node(puzzle, to_2d_array(puzzle), find_starting_state(puzzle), 0, [])
+    node = Node(to_2d_array(puzzle), find_open_position(puzzle), depth, visited_states)
+    visited_states.append(node.state_array)
     queue.append(node)
-    while queue.pop().state_array != GOAL_STATE:
-
-
+    node = queue.popleft()
+    while node.state_array != GOAL_STATE:
+        children = get_children(node)
+        for child in children:
+            visited_states.append(child)
+            new_node = Node(child, find_open_position(puzzle), node.depth + 1, visited_states)
+            queue.append(new_node)
+        node = queue.popleft()
     end = timer()
     time = start - end
+    print("Breadth First Search solution found in: " + str(time))
 
 
 def solve_stack(puzzle):
     stack = Stack()
     start = timer()
     visited_states = []
+    depth = 0
+    node = Node(to_2d_array(puzzle), find_open_position(puzzle), depth, visited_states)
+    stack.push(node)
+    node = stack.pop()
+    while node.state_array != GOAL_STATE:
+        children = get_children(node)
+        for child in children:
+            visited_states.append(child)
+            new_node = Node(child, find_open_position(puzzle), node.depth + 1, visited_states)
+            stack.push(new_node)
+        node = stack.pop()
     end = timer()
     time = start - end
-    pass
+    print("Depth First Search solution found in: " + str(time))
 
 
 def solve_manhattan(puzzle):
@@ -180,12 +195,12 @@ def solve_manhattan(puzzle):
     end = timer()
     time = start - end
 
+
 def solve_position(puzzle):
     start = timer()
     visited_states = []
     end = timer()
     time = start - end
-
 
 
 def get_manhattan(state):
@@ -194,6 +209,7 @@ def get_manhattan(state):
 
 def get_postion(state):
     pass
+
 
 def print_puzzle(puz):
     output = ""
@@ -207,26 +223,56 @@ def print_puzzle(puz):
 # Returns a list of positions of valid children from current state
 def get_children(node):
     state = node.state_array
-    children = []  # List of children
+    children = []  # List of possible moves after
+    possible_moves = []  # Temp List of possible moves
     temp_state = ''
     r = int(node.position[0])  # Row
     c = int(node.position[1])  # Column
 
-    if (r == 0) and c == 0:
-        children.append()
+    if r == 0 and c == 0:
+        possible_moves.append('01')
+        possible_moves.append('10')
+    elif r == 0 and c == 1:
+        possible_moves.append("00")
+        possible_moves.append('20')
+        possible_moves.append('12')
 
-    # If column is not farthest left column, check value of position directly left of current state
-    if (c != 0) and maze[r][c - 1] == 'P' or maze[r][c - 1] == 'X':  # If maze value is 'X', or 'P' add to children
-        children.append(str(r) + str(c - 1))
+    elif r == 0 and c == 2:
+        possible_moves.append('01')
+        possible_moves.append('12')
 
-    # If not bottom row, check value of position directly to the bottom of current state
-    if (r != 9) and maze[r - 1][c] == 'P' or maze[r - 1][c] == 'X':  # If maze value is 'X', or 'P' add to children
-        children.append(str(r - 1) + str(c))
+    elif r == 1 and c == 0:
+        possible_moves.append('00')
+        possible_moves.append('11')
+        possible_moves.append('20')
 
-    # If column is not farthest right column, check value of position directly right of current state
-    if (c != 9) and maze[r][c + 1] == 'P' or maze[r][c + 1] == 'X':  # If maze value is 'X', or 'P' add to children
-        children.append(str(r) + str(c + 1))
+    elif r == 1 and c == 1:
+        possible_moves.append('01')
+        possible_moves.append('10')
+        possible_moves.append('12')
+        possible_moves.append('22')
 
+    elif r == 1 and c == 2:
+        possible_moves.append('02')
+        possible_moves.append('22')
+        possible_moves.append('11')
+
+    elif r == 2 and c == 0:
+        possible_moves.append('10')
+        possible_moves.append('21')
+
+    elif r == 2 and c == 1:
+        possible_moves.append('20')
+        possible_moves.append('12')
+        possible_moves.append('22')
+
+    elif r == 2 and c == 2:
+        possible_moves.append('21')
+        possible_moves.append('12')
+
+    for move in possible_moves:
+        if is_valid_move(state, node.position, move, node.path):
+            children.append(slide_tiles(state, node.position, move))
     return children
 
 
@@ -239,6 +285,27 @@ def to_2d_array(puz):
         for j in range(3):
             puzzle[i][j] = puz[count]
             count += 1
+
+
+def slide_tiles(state, current, move):
+    temp_state = copy.deepcopy(state)
+
+    temp_state[int(current[0])][int(current[1])], temp_state[int(move[0])][int(move[1])] = \
+        temp_state[int(move[0])][int(move[1])], temp_state[int(current[0])][int(current[1])]
+    return temp_state
+
+
+# Function checks if move is valid
+#
+def is_valid_move(state, current, move, visited_states):
+    temp_state = copy.deepcopy(state)
+
+    temp_state[int(current[0])][int(current[1])], temp_state[int(move[0])][int(move[1])] = \
+        temp_state[int(move[0])][int(move[1])], temp_state[int(current[0])][int(current[1])]
+    if temp_state in visited_states:
+        return False
+    elif temp_state not in visited_states:
+        return True
 
 
 def to_string(puz):
@@ -270,7 +337,7 @@ def is_solvable(puzzle):
     inversions = 0
     for i in range(len(puzzle)):
         for j in range(1, len(puzzle)):
-            if(puzzle[i] > puzzle[j]):
+            if puzzle[i] > puzzle[j]:
                 inversions += 1
         if puzzle[i] == 0 and i % 2 == 1:
             inversions += 1
@@ -283,4 +350,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
