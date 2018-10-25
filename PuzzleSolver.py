@@ -272,9 +272,9 @@ def get_children(node):
         possible_moves.append('01')
         possible_moves.append('10')
     elif r == 0 and c == 1:
-        possible_moves.append("00")
-        possible_moves.append('20')
-        possible_moves.append('12')
+        possible_moves.append('00')
+        possible_moves.append('02')
+        possible_moves.append('11')
 
     elif r == 0 and c == 2:
         possible_moves.append('01')
@@ -289,7 +289,7 @@ def get_children(node):
         possible_moves.append('01')
         possible_moves.append('10')
         possible_moves.append('12')
-        possible_moves.append('22')
+        possible_moves.append('21')
 
     elif r == 1 and c == 2:
         possible_moves.append('02')
@@ -302,7 +302,7 @@ def get_children(node):
 
     elif r == 2 and c == 1:
         possible_moves.append('20')
-        possible_moves.append('12')
+        possible_moves.append('11')
         possible_moves.append('22')
 
     elif r == 2 and c == 2:
