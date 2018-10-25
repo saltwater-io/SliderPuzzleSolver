@@ -48,6 +48,7 @@ GOAL_STATE = [['1', '2', '3'], ['4', '5', '6'], ['7', '8', '0']]
 default_puzzle = []
 
 
+# Checks user entry to see if it is a valid option
 def check_piece(piece, puz):
     valid_nums = ['0', '1', '2', '3', '4', '5', '6', '7', '8']
 
@@ -65,14 +66,16 @@ def check_piece(piece, puz):
     pass
 
 
+# Finds postion of 0 in the slider puzzle for further examination
 def find_open_position(puzzle):
     for i in range(3):  # i = column #, j = row
         for j in range(3):
             if puzzle[i][j] == '0':
-                entry = str(i) + str(j)  # beginning state of puzzle
+                entry = str(i) + str(j)  # Open spot in puzzle
     return entry
 
 
+# Begins program by display options and receiving user input
 def begin():
     print(" ")
     print("Hello, this program solves a 3x3 slider puzzle!")
@@ -81,27 +84,31 @@ def begin():
 
     user_input = input("Would you like to input your own maze using non repeating numbers 0-8?: y/n  ")
     user_input = user_input.upper()
-
+    # Forces user to choose a valid option
     while user_input != "Y" and user_input != "N":
         print("Sorry, only 'Y'/'N' or 'y'/'n' are acceptable answers. Please try again! ")
         user_input = input("Would you like to input your own maze using non repeating numbers 0-8?: y/n  ")
         user_input = user_input.upper()
     puzzle = []
 
+    # If user chooses 'Y', user proceeds to input puzzle
     if user_input == 'Y':
-
+        # while the puzzle is less than 3 x 3 and the input is not exit or N
         while len(puzzle) < 9 and user_input != 'XIT' and user_input != 'N':
+
             puzzle_piece = input("Please enter one number(0-8) in the order you would like it to appear:  ")
             puzzle_piece = str(puzzle_piece)
 
+            # Checks to see if user input is valid
             if not check_piece(puzzle_piece, puzzle):
                 print("Please enter a valid non-repeating number! ")
 
-                if len(puzzle):
+                if len(puzzle):  # Displays current puzzle to user for ease of access
                     print("The current pieces are as follows:" + print_puzzle(puzzle))
             else:
-                puzzle.append(puzzle_piece)
+                puzzle.append(puzzle_piece)  # Adds piece to puzzle
 
+        #  Puzzle is correct length, notify user and proceed.
         if len(puzzle) == 9:
             print("The puzzle you entered will now try to be solved:  " + print_puzzle(puzzle))
             # if is_solvable(puzzle):
@@ -114,15 +121,18 @@ def begin():
             #         user_input = new_input.upper()
             #     puzzle.clear()
 
+    # User wants to generate a random puzzle to be solved
     if user_input == 'N':
         print("A valid puzzle will now be generated for you. ")
         print("")
+        # Generates puzzle
         puzzle = generate_puzzle()
         while not is_solvable(puzzle):
             puzzle = generate_puzzle()
         print("Solvable puzzle has been generated! ")
         print("Order of pieces: " + print_puzzle(puzzle))
 
+    # Menu for the user to choose which way the puzzle is solved
     print("There are four available options to solve the puzzle: ")
     print("")
     print("Option 1: Breath First Search.")
@@ -136,37 +146,43 @@ def begin():
     choice = input("Which would you like to choose?: ")
     choice = str(choice).upper()
 
+    # While user input is not exit character, offer the ability to choose solution
     while choice != 'X' and choice != '1' and choice != '2' and choice != '3' and choice != '4':
         print(" ")
         choice = input("Please choose 1, 2, 3, 4, or X to quit! ")
 
     while choice != 'X':
 
-        if choice == '1':
+        if choice == '1':  # Breadth-First
             solve_queue(puzzle)
 
-        elif choice == '2':
+        elif choice == '2':  # Depth-First
             solve_stack(puzzle)
 
-        elif choice == '3':
+        elif choice == '3':  # Position Heuristic
             solve_position(puzzle)
 
-        elif choice == '4':
+        elif choice == '4':  # Manahattan Distance Heuristic
             solve_manhattan(puzzle)
 
-
+# Solves puzzle via Breadth-First Search (queue)
 def solve_queue(puzzle):
-    queue = deque([])
-    visited_states = []
+    queue = deque([])  # Queue
+    visited_states = []  # Visited_States
+
     depth = 0
-    puzzle = to_2d_array(puzzle)
-    start = timer()
-    node = Node(puzzle, find_open_position(puzzle), depth, visited_states)
-    visited_states.append(format_array(node.state_array))
-    queue.append(node)
-    node = queue.popleft()
+    puzzle = to_2d_array(puzzle)  # Transforms puzzle to 2-d array
+    start = timer()  # timer start
+
+    node = Node(puzzle, find_open_position(puzzle), depth, visited_states)  # Origin state
+    visited_states.append(format_array(node.state_array))  # adds visited states as an in-order string
+
+    queue.append(node)  # Adds origin state to queue
+    node = queue.popleft()  # Pops origin as node
+
+    #  Loop walks through puzzle and checks if goal state is reached
     while node.state_array != GOAL_STATE:
-        children = get_children(node)
+        children = get_children(node)  # Moves
         for child in children:
             if to_string(child) in visited_states:
                 pass
@@ -181,25 +197,31 @@ def solve_queue(puzzle):
 
 # Solves the 3x3 slider puzzle using depth first search (stack).
 def solve_stack(puzzle):
-    stack = Stack()
-    start = timer()
-    visited_states = []
+    stack = Stack()  # Stack
+    start = timer()  # Timer start
+    visited_states = []  # States
+
     depth = 0
-    puzzle = to_2d_array(puzzle)
-    node = Node(puzzle, find_open_position(puzzle), depth, visited_states)
+    puzzle = to_2d_array(puzzle)  # Transforms puzzle into 2-d array
+    node = Node(puzzle, find_open_position(puzzle), depth, visited_states)  # Origin State
+
     stack.push(node)
     node = stack.pop()
+    #  Loop walks through puzzle and checks if goal state is reached
     while node.state_array != GOAL_STATE:
         print(node.depth)
         print(node.state_array)
-        children = get_children(node)
+        children = get_children(node)  # Moves
         for child in children:
             if to_string(child) in visited_states:
                 pass
             elif to_string(child) not in visited_states:
-                visited_states.append(to_string(child))
+                visited_states.append(to_string(child))  # Adds to visited states
+                # New generated child state
                 new_node = Node(child, find_open_position(puzzle), node.depth + 1, visited_states)
-                stack.push(new_node)
+                stack.push(new_node)  # Push new node onto stack
+
+        # Gets new state
         node = stack.pop()
 
     end = timer()
@@ -331,6 +353,7 @@ def to_string(puz):
     for i in range(3):
         for j in range(3):
             state = state + puz[i][j]
+    return state
 
 
 def generate_puzzle():
