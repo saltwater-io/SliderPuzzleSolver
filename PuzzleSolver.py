@@ -46,7 +46,7 @@ class Stack:
 
 # Goals State is used to validate the completeness of the puzzle
 GOAL_STATE = [['1', '2', '3'], ['4', '5', '6'], ['7', '8', '0']]
-default_puzzle = [['1', '2', '3'], ['4', '0', '6'], ['7', '5', '8']]
+default_puzzle = [['7', '8', '3'], ['4', '1', '5'], ['6', '0', '2']]
 
 
 # Checks user entry to see if it is a valid option
@@ -175,7 +175,7 @@ def solve_queue(puzzle):
     puzzle = to_2d_array(puzzle)  # Transforms puzzle to 2-d array
     start = timer()  # timer start
 
-    node = Node(puzzle, find_open_position(puzzle), depth, visited_states)  # Origin state
+    node = Node(default_puzzle, find_open_position(puzzle), depth, visited_states)  # Origin state
     visited_states[to_string(node.state_array)] = 1  # adds visited states as an in-order string
 
     queue.append(node)  # Adds origin state to queue
@@ -211,7 +211,7 @@ def solve_stack(puzzle):
     puzzle = to_2d_array(puzzle)  # Transforms puzzle to 2-d array
     start = timer()  # timer start
 
-    node = Node(puzzle, find_open_position(puzzle), depth, visited_states)  # Origin state
+    node = Node(default_puzzle, find_open_position(puzzle), depth, visited_states)  # Origin state
     visited_states[to_string(node.state_array)] = 1  # adds visited states as a key in dictionary O(1)
 
     stack.push(node)  # Adds origin state to stack
@@ -244,17 +244,17 @@ def solve_stack(puzzle):
 #TODO
 def solve_manhattan(puzzle):
     start = timer()
-    visited_states = []
+    visited_states = {}
     end = timer()
-    time = start - end
+    time = end - start
 
 
 #TODO
 def solve_position(puzzle):
     start = timer()
-    visited_states = []
+    visited_states = {}
     end = timer()
-    time = start - end
+    time = end - start
 
 
 #TODO
@@ -350,17 +350,6 @@ def slide_tiles(state, current, move):
 
 # Function checks if move is valid
 #
-def is_valid_move(state, current, move, visited_states):
-    temp_state = copy.deepcopy(state)
-
-    temp_state[int(current[0])][int(current[1])], temp_state[int(move[0])][int(move[1])] = \
-        temp_state[int(move[0])][int(move[1])], temp_state[int(current[0])][int(current[1])]
-    check = to_string(temp_state)
-    if check in visited_states:
-        return False
-    elif check not in visited_states:
-        return True
-
 
 def to_string(puz):
     state = ''
