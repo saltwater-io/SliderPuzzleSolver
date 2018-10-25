@@ -137,7 +137,7 @@ def begin():
     print("There are four available options to solve the puzzle: ")
 
     print("")
-    
+
     menu = {}
     menu['1'] = "Breath First Search."
     menu['2'] = "Depth First Search."
@@ -150,8 +150,7 @@ def begin():
         for entry in options:
             print(entry, menu[entry])
 
-
-        selection = str(input("Please Select:"))
+        selection = str(input("Please make a selection:"))
         if selection == '1':
             solve_queue(puzzle)
         elif selection == '2':
@@ -160,7 +159,6 @@ def begin():
             print("In progress, please choose 1, 2, or 5 to quit!: ")
         elif selection == '4':
             print("In progress, please choose 1, 2, or 5 to quit!: ")
-
         elif selection == '5':
             break
         else:
@@ -171,28 +169,26 @@ def begin():
 # Solves puzzle via Breadth-First Search (queue)
 def solve_queue(puzzle):
     queue = deque([])  # Queue
-    visited_states = []  # Visited_States
+    visited_states = {}  # Visited_States
 
     depth = 0
     puzzle = to_2d_array(puzzle)  # Transforms puzzle to 2-d array
     start = timer()  # timer start
 
     node = Node(puzzle, find_open_position(puzzle), depth, visited_states)  # Origin state
-    visited_states.append(format_array(node.state_array))  # adds visited states as an in-order string
+    visited_states[to_string(node.state_array)] = 1  # adds visited states as an in-order string
 
     queue.append(node)  # Adds origin state to queue
     node = queue.popleft()  # Pops origin as node
 
     #  Loop walks through puzzle and checks if goal state is reached
     while node.state_array != GOAL_STATE:
-        print(node.depth)
-        print(node.state_array)
         children = get_children(node)  # Child States
         for child in children:
             if to_string(child) in visited_states:
                 pass
-            elif child not in visited_states:
-                visited_states.append(to_string(child))  # Adds new state to visited states
+            elif to_string(child) not in visited_states:
+                visited_states[to_string(child)] = 1  # Adds new state to visited states
                 new_node = Node(child, find_open_position(child), node.depth + 1, visited_states)
                 queue.append(new_node)
         node = queue.popleft()
@@ -204,42 +200,48 @@ def solve_queue(puzzle):
     end = timer()
     time = end - start
     print("Breadth First Search solution found in: " + str(time) + " seconds at " + str(node.depth) + " depth")
-
+    print("  ")
 
 # Solves the 3x3 slider puzzle using depth first search (stack).
 def solve_stack(puzzle):
-    stack = Stack()  # Stack
-    start = timer()  # Timer start
-    visited_states = []  # States
+    stack = Stack()  # Queue
+    visited_states = {}  # Visited_States
 
     depth = 0
-    puzzle = to_2d_array(puzzle)  # Transforms puzzle into 2-d array
-    node = Node(puzzle, find_open_position(puzzle), depth, visited_states)  # Origin State
+    puzzle = to_2d_array(puzzle)  # Transforms puzzle to 2-d array
+    start = timer()  # timer start
 
-    stack.push(node)
-    node = stack.pop()
+    node = Node(puzzle, find_open_position(puzzle), depth, visited_states)  # Origin state
+    visited_states[to_string(node.state_array)] = 1  # adds visited states as a key in dictionary O(1)
+
+    stack.push(node)  # Adds origin state to stack
+    node = stack.pop()  # Pops origin as node
+
     #  Loop walks through puzzle and checks if goal state is reached
     while node.state_array != GOAL_STATE:
-        print(node.depth)
-        print(node.state_array)
-        children = get_children(node)  # Moves
+        children = get_children(node)  # Child States
         for child in children:
             if to_string(child) in visited_states:
                 pass
             elif to_string(child) not in visited_states:
-                visited_states.append(to_string(child))  # Adds to visited states
-                # New generated child state
-                new_node = Node(child, find_open_position(puzzle), node.depth + 1, visited_states)
-                stack.push(new_node)  # Push new node onto stack
 
-        # Gets new state
+                visited_states[to_string(child)] = 1  # Adds new state to visited states
+                # Creates new node state
+                new_node = Node(child, find_open_position(child), node.depth + 1, visited_states)
+                stack.push(new_node)  # Pushes state onto stack
         node = stack.pop()
+
+    print(node.state_array)
+    for n in node.ancestors:
+        print(n.state_array)
 
     end = timer()
     time = end - start
-    print("Depth First Search solution found in: " + str(time) + " seconds at " + node.depth + " depth.")
+    print("Depth First Search solution found in: " + str(time) + " seconds at depth: " + str(node.depth))
+    print(" ")
 
 
+#TODO
 def solve_manhattan(puzzle):
     start = timer()
     visited_states = []
@@ -247,6 +249,7 @@ def solve_manhattan(puzzle):
     time = start - end
 
 
+#TODO
 def solve_position(puzzle):
     start = timer()
     visited_states = []
@@ -254,14 +257,16 @@ def solve_position(puzzle):
     time = start - end
 
 
+#TODO
 def get_manhattan(state):
     pass
 
 
+#TODO
 def get_postion(state):
     pass
 
-
+# Prints puzzle for output format
 def print_puzzle(puz):
     output = ""
     for p in puz:
@@ -321,7 +326,6 @@ def get_children(node):
         possible_moves.append('12')
 
     for move in possible_moves:
-        if is_valid_move(state, node.position, move, node.visited_states):
             children.append(slide_tiles(state, node.position, move))
     return children
 
