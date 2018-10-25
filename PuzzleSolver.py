@@ -162,21 +162,24 @@ def solve_queue(puzzle):
     puzzle = to_2d_array(puzzle)
     start = timer()
     node = Node(puzzle, find_open_position(puzzle), depth, visited_states)
-    visited_states.append(node.state_array)
+    visited_states.append(format_array(node.state_array))
     queue.append(node)
     node = queue.popleft()
     while node.state_array != GOAL_STATE:
         children = get_children(node)
         for child in children:
-            visited_states.append(child)
-            new_node = Node(child, find_open_position(child), node.depth + 1, visited_states)
-            queue.append(new_node)
+            if child in visited_states:
+                pass
+            elif child not in visited_states:
+                visited_states.append(child)
+                new_node = Node(child, find_open_position(child), node.depth + 1, visited_states)
+                queue.append(new_node)
         node = queue.popleft()
     end = timer()
     time = start - end
     print("Breadth First Search solution found in: " + str(time))
 
-
+# Solves the 3x3 slider puzzle using depth first search (stack).
 def solve_stack(puzzle):
     stack = Stack()
     start = timer()
@@ -187,11 +190,16 @@ def solve_stack(puzzle):
     stack.push(node)
     node = stack.pop()
     while node.state_array != GOAL_STATE:
+        print(node.depth)
+        print(node.state_array)
         children = get_children(node)
         for child in children:
-            visited_states.append(child)
-            new_node = Node(child, find_open_position(puzzle), node.depth + 1, visited_states)
-            stack.push(new_node)
+            if format_array(child) in visited_states:
+                pass
+            elif format_array(child) not in visited_states:                
+                visited_states.append(format_array(child))
+                new_node = Node(child, find_open_position(puzzle), node.depth + 1, visited_states)
+                stack.push(new_node)
         node = stack.pop()
 
     end = timer()
@@ -332,11 +340,19 @@ def generate_puzzle():
             puzzle.append(str(num))
     return puzzle
 
+# 
+# def to_integer_array(puz):
+#     for i in puz:
+#         puz[i] = int(puz[i])
+#     return puz
 
-def to_integer_array(puz):
-    for i in puz:
-        puz[i] = int(puz[i])
-    return puz
+# Formats 2d array into single array
+def format_array(puz):
+    puzzle = []
+    for i in range(3):
+        for j in range(3):
+            puzzle.append(puz[i][j])
+    return puzzle
 
 
 # This function was adapted from:
