@@ -44,8 +44,9 @@ class Stack:
         return len(self.items)
 
 
+# Goals State is used to validate the completeness of the puzzle
 GOAL_STATE = [['1', '2', '3'], ['4', '5', '6'], ['7', '8', '0']]
-default_puzzle = []
+default_puzzle = [['1', '2', '3'], ['4', '0', '6'], ['7', '5', '8']]
 
 
 # Checks user entry to see if it is a valid option
@@ -58,8 +59,8 @@ def check_piece(piece, puz):
     elif piece in puz:
         return False
 
-    elif piece in valid_nums:
-        return True
+    # elif piece in valid_nums:
+    #     return True
 
     elif piece in valid_nums and piece not in puz:
         return True
@@ -80,7 +81,7 @@ def begin():
     print(" ")
     print("Hello, this program solves a 3x3 slider puzzle!")
     print(" ")
-    print("To generate a random, solvable puzzle please enter 'n'!  ")
+    print("To generate a random, puzzle please enter 'n'!  ")
 
     user_input = input("Would you like to input your own maze using non repeating numbers 0-8?: y/n  ")
     user_input = user_input.upper()
@@ -134,36 +135,38 @@ def begin():
 
     # Menu for the user to choose which way the puzzle is solved
     print("There are four available options to solve the puzzle: ")
-    print("")
-    print("Option 1: Breath First Search.")
-    print("Option 2: Depth First Search.")
-    print("Option 3: Tile Position Heuristic - In progress.")
-    print("Option 4: Manhattan Distance Heuristic - In progress.")
-    print("Enter 'X' to quit!")
 
     print("")
+    
+    menu = {}
+    menu['1'] = "Breath First Search."
+    menu['2'] = "Depth First Search."
+    menu['3'] = "Tile Position Heuristic - In progress."
+    menu['4'] = "Manhattan Distance Heuristic - In progress."
+    menu['5'] = "Quit"
 
-    choice = input("Which would you like to choose?: ")
-    choice = str(choice).upper()
+    while True:
+        options = menu.keys()
+        for entry in options:
+            print(entry, menu[entry])
 
-    # While user input is not exit character, offer the ability to choose solution
-    while choice != 'X' and choice != '1' and choice != '2' and choice != '3' and choice != '4':
-        print(" ")
-        choice = input("Please choose 1, 2, 3, 4, or X to quit! ")
 
-    while choice != 'X':
-
-        if choice == '1':  # Breadth-First
+        selection = str(input("Please Select:"))
+        if selection == '1':
             solve_queue(puzzle)
-
-        elif choice == '2':  # Depth-First
+        elif selection == '2':
             solve_stack(puzzle)
+        elif selection == '3':
+            print("In progress, please choose 1, 2, or 5 to quit!: ")
+        elif selection == '4':
+            print("In progress, please choose 1, 2, or 5 to quit!: ")
 
-        elif choice == '3':  # Position Heuristic
-            solve_position(puzzle)
+        elif selection == '5':
+            break
+        else:
+            print("Please choose 1, 2, or 5 to quit! ")
 
-        elif choice == '4':  # Manahattan Distance Heuristic
-            solve_manhattan(puzzle)
+
 
 # Solves puzzle via Breadth-First Search (queue)
 def solve_queue(puzzle):
@@ -182,18 +185,26 @@ def solve_queue(puzzle):
 
     #  Loop walks through puzzle and checks if goal state is reached
     while node.state_array != GOAL_STATE:
-        children = get_children(node)  # Moves
+        print(node.depth)
+        print(node.state_array)
+        children = get_children(node)  # Child States
         for child in children:
             if to_string(child) in visited_states:
                 pass
             elif child not in visited_states:
-                visited_states.append(to_string(child))
+                visited_states.append(to_string(child))  # Adds new state to visited states
                 new_node = Node(child, find_open_position(child), node.depth + 1, visited_states)
                 queue.append(new_node)
         node = queue.popleft()
+
+    print(node.state_array)
+    for n in node.ancestors:
+        print(n.state_array)
+
     end = timer()
-    time = start - end
-    print("Breadth First Search solution found in: " + str(time))
+    time = end - start
+    print("Breadth First Search solution found in: " + str(time) + " seconds at " + str(node.depth) + " depth")
+
 
 # Solves the 3x3 slider puzzle using depth first search (stack).
 def solve_stack(puzzle):
@@ -225,8 +236,8 @@ def solve_stack(puzzle):
         node = stack.pop()
 
     end = timer()
-    time = start - end
-    print("Depth First Search solution found in: " + str(time))
+    time = end - start
+    print("Depth First Search solution found in: " + str(time) + " seconds at " + node.depth + " depth.")
 
 
 def solve_manhattan(puzzle):
@@ -259,8 +270,8 @@ def print_puzzle(puz):
 
 
 # Gets child node positions of the current state
-# Takes the maze and current state as parameters
-# Returns a list of positions of valid children from current state
+# Takes the current state as parameter
+# Returns a list of future states aka children from current state
 def get_children(node):
     state = node.state_array
     children = []  # List of possible moves after
@@ -268,10 +279,10 @@ def get_children(node):
     r = int(node.position[0])  # Row
     c = int(node.position[1])  # Column
 
-    if r == 0 and c == 0:
-        possible_moves.append('01')
-        possible_moves.append('10')
-    elif r == 0 and c == 1:
+    if r == 0 and c == 0:              # Puzzle slots:
+        possible_moves.append('01')    # 00 01 02
+        possible_moves.append('10')    # 10 11 12
+    elif r == 0 and c == 1:            # 20 21 22
         possible_moves.append('00')
         possible_moves.append('02')
         possible_moves.append('11')
@@ -280,10 +291,10 @@ def get_children(node):
         possible_moves.append('01')
         possible_moves.append('12')
 
-    elif r == 1 and c == 0:
-        possible_moves.append('00')
-        possible_moves.append('11')
-        possible_moves.append('20')
+    elif r == 1 and c == 0:             # Puzzle slots:
+        possible_moves.append('00')     # 00 01 02
+        possible_moves.append('11')     # 10 11 12
+        possible_moves.append('20')     # 20 21 22
 
     elif r == 1 and c == 1:
         possible_moves.append('01')
@@ -293,10 +304,10 @@ def get_children(node):
 
     elif r == 1 and c == 2:
         possible_moves.append('02')
-        possible_moves.append('22')
-        possible_moves.append('11')
-
-    elif r == 2 and c == 0:
+        possible_moves.append('22')     # Puzzle slots:
+        possible_moves.append('11')     # 00 01 02
+                                        # 10 11 12
+    elif r == 2 and c == 0:             # 20 21 22
         possible_moves.append('10')
         possible_moves.append('21')
 
@@ -336,7 +347,6 @@ def slide_tiles(state, current, move):
 # Function checks if move is valid
 #
 def is_valid_move(state, current, move, visited_states):
-
     temp_state = copy.deepcopy(state)
 
     temp_state[int(current[0])][int(current[1])], temp_state[int(move[0])][int(move[1])] = \
@@ -363,6 +373,7 @@ def generate_puzzle():
         if str(num) not in puzzle:
             puzzle.append(str(num))
     return puzzle
+
 
 #
 # def to_integer_array(puz):
