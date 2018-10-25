@@ -168,10 +168,10 @@ def solve_queue(puzzle):
     while node.state_array != GOAL_STATE:
         children = get_children(node)
         for child in children:
-            if child in visited_states:
+            if to_string(child) in visited_states:
                 pass
             elif child not in visited_states:
-                visited_states.append(child)
+                visited_states.append(to_string(child))
                 new_node = Node(child, find_open_position(child), node.depth + 1, visited_states)
                 queue.append(new_node)
         node = queue.popleft()
@@ -194,10 +194,10 @@ def solve_stack(puzzle):
         print(node.state_array)
         children = get_children(node)
         for child in children:
-            if format_array(child) in visited_states:
+            if to_string(child) in visited_states:
                 pass
-            elif format_array(child) not in visited_states:                
-                visited_states.append(format_array(child))
+            elif to_string(child) not in visited_states:
+                visited_states.append(to_string(child))
                 new_node = Node(child, find_open_position(puzzle), node.depth + 1, visited_states)
                 stack.push(new_node)
         node = stack.pop()
@@ -288,7 +288,7 @@ def get_children(node):
         possible_moves.append('12')
 
     for move in possible_moves:
-        if is_valid_move(state, node.position, move, node.path):
+        if is_valid_move(state, node.position, move, node.visited_states):
             children.append(slide_tiles(state, node.position, move))
     return children
 
@@ -319,9 +319,10 @@ def is_valid_move(state, current, move, visited_states):
 
     temp_state[int(current[0])][int(current[1])], temp_state[int(move[0])][int(move[1])] = \
         temp_state[int(move[0])][int(move[1])], temp_state[int(current[0])][int(current[1])]
-    if temp_state in visited_states:
+    check = to_string(temp_state)
+    if check in visited_states:
         return False
-    elif temp_state not in visited_states:
+    elif check not in visited_states:
         return True
 
 
@@ -340,7 +341,7 @@ def generate_puzzle():
             puzzle.append(str(num))
     return puzzle
 
-# 
+#
 # def to_integer_array(puz):
 #     for i in puz:
 #         puz[i] = int(puz[i])
