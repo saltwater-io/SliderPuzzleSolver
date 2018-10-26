@@ -47,7 +47,7 @@ class Stack:
 # Goals State is used to validate the completeness of the puzzle
 GOAL_STATE = [['1', '2', '3'], ['4', '5', '6'], ['7', '8', '0']]
 default_puzzle = [['7', '8', '3'], ['4', '1', '5'], ['6', '0', '2']]
-
+heuristic = {'00': '1', '01': '2','02': '3', '10': '4','11': '5', '12': '6','20': '7', '21': '8','22': '0'}
 
 # Checks user entry to see if it is a valid option
 def check_piece(piece, puz):
@@ -138,8 +138,8 @@ def begin():
 
     print("")
 
-    menu = {'1': "Breath First Search.", 
-            '2': "Depth First Search.", 
+    menu = {'1': "Breath First Search.",
+            '2': "Depth First Search.",
             '3': "Tile Position Heuristic - In progress.",
             '4': "Manhattan Distance Heuristic - In progress.", '5': "Quit"}
 
@@ -188,7 +188,10 @@ def solve_queue(puzzle):
                 visited_states[to_string(child)] = 1  # Adds new state to visited states
                 new_node = Node(child, find_open_position(child), node.depth + 1, visited_states)
                 queue.append(new_node)
-        node = queue.popleft()
+        if len(queue):
+            node = queue.popleft()
+        else:
+            print("Sorry, puzzle not solvable!")
 
     # print(node.state_array)
     # for n in node.ancestors:
@@ -206,7 +209,7 @@ def solve_stack(puzzle):
     visited_states = {}  # Visited_States
 
     depth = 0
-    puzzle = to_2d_array(puzzle)  # Transforms puzzle to 2-d array
+    puzzle = to_2d_array(puzzle)  # Transforms puzzle into 2-d array
     start = timer()  # timer start
 
     node = Node(default_puzzle, find_open_position(puzzle), depth, visited_states)  # Origin state
@@ -227,7 +230,10 @@ def solve_stack(puzzle):
                 # Creates new node state
                 new_node = Node(child, find_open_position(child), node.depth + 1, visited_states)
                 stack.push(new_node)  # Pushes state onto stack
-        node = stack.pop()
+        if stack.isEmpty():
+            print("Sorry, puzzle not solvable!")
+        else:
+            node = stack.pop()
 
     print(node.state_array)
     for n in node.ancestors:
@@ -235,6 +241,7 @@ def solve_stack(puzzle):
 
     end = timer()
     time = end - start
+    print(" ")
     print("Depth First Search solution found in: " + str(time) + " seconds at depth: " + str(node.depth))
     print(" ")
 
@@ -257,6 +264,11 @@ def solve_position(puzzle):
 
 # TODO
 def get_manhattan(state):
+    manhattan = 0
+    for i in range(3):
+        for j in range(3):
+            manhattan = manhattan + abs(state[i][j]) - manhattan[state[i][j]]
+
     pass
 
 
