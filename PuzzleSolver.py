@@ -565,10 +565,6 @@ def is_solvable(puzzle):
             inversions += 1
     return inversions % 2 == 0
 
-
-def main():
-    begin()
-
-
 if __name__ == "__main__":
     begin()
+    pass
