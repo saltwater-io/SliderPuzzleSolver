@@ -274,16 +274,13 @@ def solve_stack(puzzle):
     #  Loop walks through puzzle and checks if goal state is reached
     while node.state_array != GOAL_STATE:
         children = get_children(node)  # Child States
-        # path = copy.deepcopy(node.current_path)
         for child in children:
             if to_string(child) in visited_states:
                 pass
             elif to_string(child) not in visited_states:
                 visited_states[to_string(child)] = 1  # Adds new state to visited states
-                new_path = copy.deepcopy(node.current_path)
-                new_path.append(to_string(child))
                 # Creates new node state
-                new_node = Node(child, find_open_position(child), node.depth + 1, current_path=new_path)
+                new_node = Node(child, find_open_position(child), node.depth + 1, current_path=None)
                 stack.push(new_node)  # Pushes state onto stack
         if stack.isEmpty():
             if node.state_array == GOAL_STATE:
@@ -299,10 +296,8 @@ def solve_stack(puzzle):
             node = stack.pop()
     end = timer()
     if solved:
-        print("Path: ")
         time = end - start
-        for state in node.current_path:
-            print(state)
+
         print("------------")
         print("Depth First Search solution found in: " + str(time) + " seconds at depth: " + str(node.depth))
         print(" ")
@@ -459,13 +454,13 @@ def get_children(node):
     r = int(node.position[0])  # Row
     c = int(node.position[1])  # Column
 
-    if r == 0 and c == 0:  # Puzzle slots:
-        possible_moves.append('01')  # 00 01 02
-        possible_moves.append('10')  # 10 11 12
-    elif r == 0 and c == 1:  # 20 21 22
-        possible_moves.append('00')
-        possible_moves.append('02')
-        possible_moves.append('11')
+    if r == 0 and c == 0:
+        possible_moves.append('01')
+        possible_moves.append('10')
+    elif r == 0 and c == 1:  # Puzzle slots:
+        possible_moves.append('00')  # 00 01 02
+        possible_moves.append('02')  # 10 11 12
+        possible_moves.append('11')  # 20 21 22
 
     elif r == 0 and c == 2:
         possible_moves.append('01')
@@ -482,25 +477,25 @@ def get_children(node):
         possible_moves.append('12')
         possible_moves.append('21')
 
-    elif r == 1 and c == 2:
-        possible_moves.append('02')
-        possible_moves.append('22')  # Puzzle slots:
-        possible_moves.append('11')  # 00 01 02
-        # 10 11 12
-    elif r == 2 and c == 0:  # 20 21 22
+    elif r == 1 and c == 2:  # Puzzle slots:
+        possible_moves.append('02')  # 00 01 02
+        possible_moves.append('22')  # 10 11 12
+        possible_moves.append('11')  # 20 21 22
+
+    elif r == 2 and c == 0:
         possible_moves.append('10')
         possible_moves.append('21')
 
-    elif r == 2 and c == 1:
-        possible_moves.append('20')
-        possible_moves.append('11')
-        possible_moves.append('22')
+    elif r == 2 and c == 1: # Puzzle slots:
+        possible_moves.append('20')  # 00 01 02
+        possible_moves.append('11')  # 10 11 12
+        possible_moves.append('22')  # 20 21 22
 
     elif r == 2 and c == 2:
         possible_moves.append('21')
         possible_moves.append('12')
 
-    for move in possible_moves:
+    for move in possible_moves:  # TODO: Return move: position -> move
         children.append(slide_tiles(state, node.position, move))
     return children
 
@@ -561,7 +556,6 @@ def format_array(puz):
 # This function was adapted from:
 # https://gist.github.com/caseyscarborough/6544636
 def is_solvable(puzzle):
-    # puzzle = to_2d_array(puzzle)
     inversions = 0
     for i in range(len(puzzle)):
         for j in range(1, len(puzzle)):
