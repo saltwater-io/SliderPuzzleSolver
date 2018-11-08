@@ -18,7 +18,7 @@ class Node(NodeMixin):
         self.state_array = state_array
         self.position = position
         self.depth = depth  # increment per slide
-        self.heuristic = heuristic # each tile that moves in solution
+        self.heuristic = heuristic  # each tile that moves in solution
         self.current_path = current_path
 
 
@@ -141,8 +141,8 @@ def begin():
     print("")
     menu = {'1': "Breath First Search.",
             '2': "Depth First Search.",
-            '3': "Tile Position Heuristic - In progress.",
-            '4': "Manhattan Distance Heuristic - In progress.",
+            '3': "Tile Position Heuristic.",
+            '4': "Manhattan Distance Heuristic.",
             '5': "Enter a new puzzle.",
             '6': "Quit"}
 
@@ -185,7 +185,7 @@ def begin():
                     else:
                         puzzle.append(puzzle_piece)  # Adds piece to puzzle
 
-            #  Puzzle is correct length, notify user and proceed.
+                #  Puzzle is correct length, notify user and proceed.
                 if len(puzzle) == 9:
                     print("The puzzle you entered will now try to be solved:  " + print_puzzle(puzzle))
                     print(" ")
@@ -195,7 +195,7 @@ def begin():
                 if user_input == 'N':
                     print("A valid puzzle will now be generated for you. ")
                     print("")
-            # Generates puzzle
+                    # Generates puzzle
                     puzzle = generate_puzzle()
                     # while not is_solvable(puzzle):
                     #     puzzle = generate_puzzle()
@@ -222,6 +222,7 @@ def solve_queue(puzzle):
     path.append(to_string(puzzle))  # Change 'puzzle' to 'default_puzzle' for a solvable example
     node = Node(puzzle, find_open_position(puzzle), depth, path)  # Origin state
     visited_states[to_string(node.state_array)] = 1  # adds visited states as an in-order string
+    count = 0
     solved = True
     queue.append(node)  # Adds origin state to queue
     node = queue.popleft()  # Pops origin as node
@@ -239,6 +240,7 @@ def solve_queue(puzzle):
                 new_path.append(to_string(child))
                 new_node = Node(child, find_open_position(child), node.depth + 1, current_path=new_path)
                 queue.append(new_node)
+                count = count + 1
         if len(queue):
             node = queue.popleft()
         else:
@@ -252,8 +254,12 @@ def solve_queue(puzzle):
             print(n)
         time = end - start
         print("------------")
-        print("Breadth First Search solution found in: " + str(time) + " seconds at " + str(node.depth) + " depth")
+        print("Breadth First Search solution found in: " + str(time) + " seconds at " + str(node.depth) + " depth.")
         print("  ")
+    else:
+        time = end - start
+        print("BFS took: " + str(time) + " seconds, and explored " + str(count + 1) + " nodes.")
+        print(" ")
 
 
 # Solves the 3x3 slider puzzle using depth first search (stack).
@@ -267,7 +273,7 @@ def solve_stack(puzzle):
     path = [to_string(puzzle)]
     node = Node(puzzle, find_open_position(puzzle), depth, path)  # Origin state
     visited_states[to_string(node.state_array)] = 1  # adds visited states as a key in dictionary O(1)
-
+    count = 0
     stack.push(node)  # Adds origin state to stack
     node = stack.pop()  # Pops origin as node
     solved = True
@@ -282,7 +288,8 @@ def solve_stack(puzzle):
                 # Creates new node state
                 new_node = Node(child, find_open_position(child), node.depth + 1, current_path=None)
                 stack.push(new_node)  # Pushes state onto stack
-        if stack.isEmpty():
+                count = count + 1
+        if stack.isEmpty():  # Checks if puzzle is solved
             if node.state_array == GOAL_STATE:
                 solved = True
                 pass
@@ -295,15 +302,19 @@ def solve_stack(puzzle):
         else:
             node = stack.pop()
     end = timer()
-    if solved:
+    if solved:  # If puzzle if solved:
         time = end - start
-
         print("------------")
         print("Depth First Search solution found in: " + str(time) + " seconds at depth: " + str(node.depth))
         print(" ")
+    else:
+        time = end - start
+        print("DFS took: " + str(time) + " seconds, and explored " + str(count + 1) + " nodes.")
+        print(" ")
 
 
-# TODO
+# Solves a puzzle using the Manhattan distance heuristic
+# which is total number of moves of each piece from the goal state
 def solve_manhattan(puzzle):
     queue = []  # Queue
     # pQueue = PriorityQueue()
@@ -312,35 +323,37 @@ def solve_manhattan(puzzle):
     depth = 0
     puzzle = to_2d_array(puzzle)  # Transforms puzzle to 2-d array
     start = timer()  # timer start
-    path = [to_string(puzzle)]
-    node = Node(puzzle, find_open_position(puzzle), depth, path,
-                get_manhattan(puzzle))  # Origin state
+
+    path = [to_string(puzzle)]  # Adds starting state to path
+    # Creates origin node
+    node = Node(puzzle, find_open_position(puzzle), depth, path, get_manhattan(puzzle))  # Origin state
     visited_states[to_string(node.state_array)] = 1  # adds visited states as an in-order string
 
     heap.heappush(queue, (node.heuristic, 0, node))  # Adds origin state to queue
-    nodeCheck = heap.heappop(queue)  # Pops origin as node
-    node = nodeCheck[2]
+    nodeCheck = heap.heappop(queue)  # Gets tuple
+
+    node = nodeCheck[2]  # Grabs node from tuple
     count = 0
     solved = True
     #  Loop walks through puzzle and checks if goal state is reached
     while node.state_array != GOAL_STATE:
         children = get_children(node)  # Child States
-        # path = copy.deepcopy(node.current_path)
-        for child in children:
+        for child in children:  # Check for previously visited states
             if to_string(child) in visited_states:
                 pass
             elif to_string(child) not in visited_states:
                 visited_states[to_string(child)] = 1  # Adds new state to visited states
-                new_path = copy.deepcopy(node.current_path)
-                new_path.append(to_string(child))
+
+                new_path = copy.deepcopy(node.current_path)  # Creates a new path and adds itself to the path
+                new_path.append(to_string(child))  # Creates a new node
                 new_node = Node(child, find_open_position(child), node.depth + 1, current_path=new_path,
                                 heuristic=get_manhattan(child))
-                heap.heappush(queue, (new_node.heuristic, count + 1, new_node))
+                heap.heappush(queue, (new_node.heuristic, count + 1, new_node))  # Pushes onto heap
                 count += 1
-        if queue:
+        if queue:  # Queue is not empty
             node = heap.heappop(queue)
             node = node[2]
-        else:
+        else:  # Queue is empty and goal state not achieved
             print(" ")
             print("Sorry, puzzle not solvable!")
             print(" ")
@@ -349,12 +362,16 @@ def solve_manhattan(puzzle):
     end = timer()
     if solved:
         print("Path: ")
-        for state in node.current_path:
+        for state in node.current_path:  # Prints path of solution
             print(state)
         time = end - start
         print("----------------")
-        print("A* Misplaced tile solution found in: " + str(time) + " seconds at " + str(node.depth) + " depth")
+        print("A* Misplaced tile solution found in: " + str(time) + " seconds at " + str(node.depth // 2) + " depth")
         print("  ")
+    else:
+        time = end - start
+        print("A* # Moves Search took: " + str(time) + " seconds, and explored " + str(count + 1) + " nodes.")
+        print(" ")
 
 
 # Solves 3x3 slider puzzle using A* misplaced tile heuristic
@@ -384,28 +401,32 @@ def solve_position(puzzle):
             elif to_string(child) not in visited_states:
                 visited_states[to_string(child)] = 1  # Adds new state to visited states
                 new_path = copy.deepcopy(node.current_path)
-                new_path.append(to_string(child))
-                new_node = Node(child, find_open_position(child), node.depth + 1, current_path=new_path,
+                new_path.append(to_string(child))  # Creates new path from parent and adds itself to it.
+                new_node = Node(child, find_open_position(child), node.depth + 1, current_path=new_path,  # New node
                                 heuristic=get_position(child))
-                heap.heappush(queue, (new_node.heuristic, count + 1, new_node))
-                count += 1
-        if queue:
+                heap.heappush(queue, (new_node.heuristic, count + 1, new_node))  # Adds to heap
+                count += 1  # Count used for priority and if unsolvable puzzle
+        if queue:  # if Queue isn't empty
             node = heap.heappop(queue)
             node = node[2]
-        else:
+        else:  # Queue is empty and goal state has not been reached
             print(" ")
             print("Sorry, puzzle not solvable!")
             print(" ")
             solved = False
             break
     end = timer()
-    if solved:
-        for n in node.current_path:
-            print(n)
+    if solved:  # If puzzle has been solved, print path to solution
+        for state in node.current_path:
+            print(state)
         time = end - start
         print("-------------------")
-        print("A* Misplaced Tile solution found in: " + str(time) + " seconds at " + str(node.depth) + " depth")
+        print("A* Misplaced Tile solution found in: " + str(time) + " seconds at " + str(node.depth // 2) + " depth.")
         print("  ")
+    else:
+        time = end - start
+        print("A* Misplaced tile search took: " + str(time) + " seconds, and explored " + str(count + 1) + " nodes.")
+        print(" ")
 
 
 # Function returns the current manhattan distance
@@ -486,7 +507,7 @@ def get_children(node):
         possible_moves.append('10')
         possible_moves.append('21')
 
-    elif r == 2 and c == 1: # Puzzle slots:
+    elif r == 2 and c == 1:  # Puzzle slots:
         possible_moves.append('20')  # 00 01 02
         possible_moves.append('11')  # 10 11 12
         possible_moves.append('22')  # 20 21 22
@@ -495,11 +516,12 @@ def get_children(node):
         possible_moves.append('21')
         possible_moves.append('12')
 
-    for move in possible_moves:  # TODO: Return move: position -> move
+    for move in possible_moves:
         children.append(slide_tiles(state, node.position, move))
     return children
 
 
+# Converts puzzle from 1D array to 2D array -> Not needed but kept if needed in future
 def to_2d_array(puz):
     puzzle = [['0', '0', '0'], ['0', '0', '0'], ['0', '0', '0']]
     count = 0
@@ -509,10 +531,12 @@ def to_2d_array(puz):
             count += 1
     return puzzle
 
-
+# Received state and generates a new state by
+# Sliding the tiles from move into open space 'Current'
 def slide_tiles(state, current, move):
     temp_state = copy.deepcopy(state)
 
+    # Swaps the tiles in a very smooth way
     temp_state[int(current[0])][int(current[1])], temp_state[int(move[0])][int(move[1])] = \
         temp_state[int(move[0])][int(move[1])], temp_state[int(current[0])][int(current[1])]
     return temp_state
@@ -564,6 +588,7 @@ def is_solvable(puzzle):
         if puzzle[i] == 0 and i % 2 == 1:
             inversions += 1
     return inversions % 2 == 0
+
 
 if __name__ == "__main__":
     begin()
