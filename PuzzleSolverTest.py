@@ -131,9 +131,9 @@ def begin():
         print("")
         # Generates puzzle
         puzzle = generate_puzzle()
-        while not is_solvable(puzzle):
-            puzzle = generate_puzzle()
-        print("Solvable puzzle has been generated! ")
+        # while not is_solvable(puzzle):
+        #     puzzle = generate_puzzle()
+        print("Puzzle has been generated! ")
         print("Order of pieces: " + print_puzzle(puzzle))
 
     # Menu for the user to choose which way the puzzle is solved
@@ -197,9 +197,9 @@ def begin():
                     print("")
             # Generates puzzle
                     puzzle = generate_puzzle()
-                    while not is_solvable(puzzle):
-                        puzzle = generate_puzzle()
-                    print("Solvable puzzle has been generated! ")
+                    # while not is_solvable(puzzle):
+                    #     puzzle = generate_puzzle()
+                    print("Puzzle has been generated! ")
                     print("Order of pieces: " + print_puzzle(puzzle))
                     print(" ")
                     break
