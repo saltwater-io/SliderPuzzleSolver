@@ -12,7 +12,6 @@ class Node(NodeMixin):
     state_array = []
     position = ''
     depth = 0
-    visited_states = []
     current_path = []
 
     def __init__(self, state_array, position, depth, current_path, heuristic=None):
@@ -153,6 +152,7 @@ def begin():
             print(entry, menu[entry])
 
         selection = str(input("Please make a selection:"))
+        print(" ")
         if selection == '1':
             solve_queue(puzzle)
         elif selection == '2':
@@ -219,7 +219,7 @@ def solve_queue(puzzle):
     puzzle = to_2d_array(puzzle)  # Transforms puzzle to 2-d array
     start = timer()  # timer start
     path = []
-    path.append(puzzle)
+    path.append(to_string(puzzle))  # Change 'puzzle' to 'default_puzzle' for a solvable example
     node = Node(puzzle, find_open_position(puzzle), depth, path)  # Origin state
     visited_states[to_string(node.state_array)] = 1  # adds visited states as an in-order string
     solved = True
@@ -229,13 +229,15 @@ def solve_queue(puzzle):
     #  Loop walks through puzzle and checks if goal state is reached
     while node.state_array != GOAL_STATE:
         children = get_children(node)  # Child States
+        # path = copy.deepcopy(node.current_path)
         for child in children:
             if to_string(child) in visited_states:
                 pass
             elif to_string(child) not in visited_states:
                 visited_states[to_string(child)] = 1  # Adds new state to visited states
-                path = []
-                new_node = Node(child, find_open_position(child), node.depth + 1, path)
+                new_path = copy.deepcopy(node.current_path)
+                new_path.append(to_string(child))
+                new_node = Node(child, find_open_position(child), node.depth + 1, current_path=new_path)
                 queue.append(new_node)
         if len(queue):
             node = queue.popleft()
@@ -245,9 +247,11 @@ def solve_queue(puzzle):
             break
     end = timer()
     if solved:
-        for n in node.path:
-            print(n.state_array)
+        print("Path: ")
+        for n in node.current_path:
+            print(n)
         time = end - start
+        print("------------")
         print("Breadth First Search solution found in: " + str(time) + " seconds at " + str(node.depth) + " depth")
         print("  ")
 
@@ -260,8 +264,8 @@ def solve_stack(puzzle):
     depth = 0
     puzzle = to_2d_array(puzzle)  # Transforms puzzle into 2-d array
     start = timer()  # timer start
-
-    node = Node(puzzle, find_open_position(puzzle), depth, [])  # Origin state
+    path = [to_string(puzzle)]
+    node = Node(puzzle, find_open_position(puzzle), depth, path)  # Origin state
     visited_states[to_string(node.state_array)] = 1  # adds visited states as a key in dictionary O(1)
 
     stack.push(node)  # Adds origin state to stack
@@ -270,36 +274,38 @@ def solve_stack(puzzle):
     #  Loop walks through puzzle and checks if goal state is reached
     while node.state_array != GOAL_STATE:
         children = get_children(node)  # Child States
+        # path = copy.deepcopy(node.current_path)
         for child in children:
             if to_string(child) in visited_states:
                 pass
             elif to_string(child) not in visited_states:
-
                 visited_states[to_string(child)] = 1  # Adds new state to visited states
+                new_path = copy.deepcopy(node.current_path)
+                new_path.append(to_string(child))
                 # Creates new node state
-                path = []
-                new_node = Node(child, find_open_position(child), node.depth + 1, path)
+                new_node = Node(child, find_open_position(child), node.depth + 1, current_path=new_path)
                 stack.push(new_node)  # Pushes state onto stack
         if stack.isEmpty():
             if node.state_array == GOAL_STATE:
                 solved = True
                 pass
             else:
+                print(" ")
                 print("Sorry, puzzle not solvable!")
+                print(" ")
                 solved = False
                 break
         else:
             node = stack.pop()
     end = timer()
     if solved:
-        for n in node.path:
-            print(n.state_array)
+        print("Path: ")
         time = end - start
-        print(" ")
+        for state in node.current_path:
+            print(state)
+        print("------------")
         print("Depth First Search solution found in: " + str(time) + " seconds at depth: " + str(node.depth))
         print(" ")
-
-    time = end - start
 
 
 # TODO
@@ -311,8 +317,8 @@ def solve_manhattan(puzzle):
     depth = 0
     puzzle = to_2d_array(puzzle)  # Transforms puzzle to 2-d array
     start = timer()  # timer start
-
-    node = Node(puzzle, find_open_position(puzzle), depth, [],
+    path = [to_string(puzzle)]
+    node = Node(puzzle, find_open_position(puzzle), depth, path,
                 get_manhattan(puzzle))  # Origin state
     visited_states[to_string(node.state_array)] = 1  # adds visited states as an in-order string
 
@@ -324,33 +330,39 @@ def solve_manhattan(puzzle):
     #  Loop walks through puzzle and checks if goal state is reached
     while node.state_array != GOAL_STATE:
         children = get_children(node)  # Child States
+        # path = copy.deepcopy(node.current_path)
         for child in children:
             if to_string(child) in visited_states:
                 pass
             elif to_string(child) not in visited_states:
                 visited_states[to_string(child)] = 1  # Adds new state to visited states
-                new_node = Node(child, find_open_position(child), node.depth + 1, [],
-                                get_manhattan(child))
+                new_path = copy.deepcopy(node.current_path)
+                new_path.append(to_string(child))
+                new_node = Node(child, find_open_position(child), node.depth + 1, current_path=new_path,
+                                heuristic=get_manhattan(child))
                 heap.heappush(queue, (new_node.heuristic, count + 1, new_node))
                 count += 1
         if queue:
             node = heap.heappop(queue)
             node = node[2]
         else:
+            print(" ")
             print("Sorry, puzzle not solvable!")
             print(" ")
             solved = False
             break
     end = timer()
     if solved:
-        for n in node.path:
-            print(n.state_array)
+        print("Path: ")
+        for state in node.current_path:
+            print(state)
         time = end - start
+        print("----------------")
         print("A* Misplaced tile solution found in: " + str(time) + " seconds at " + str(node.depth) + " depth")
         print("  ")
 
 
-# TODO
+# Solves 3x3 slider puzzle using A* misplaced tile heuristic
 def solve_position(puzzle):
     queue = []  # Queue
     visited_states = {}  # Visited_States
@@ -358,8 +370,8 @@ def solve_position(puzzle):
     depth = 0
     puzzle = to_2d_array(puzzle)  # Transforms puzzle to 2-d array
     start = timer()  # timer start
-
-    node = Node(puzzle, find_open_position(puzzle), depth, [],
+    path = [to_string(puzzle)]
+    node = Node(puzzle, find_open_position(puzzle), depth, path,
                 get_position(default_puzzle1))  # Origin state
     visited_states[to_string(node.state_array)] = 1  # adds visited states as an in-order string
 
@@ -376,22 +388,27 @@ def solve_position(puzzle):
                 pass
             elif to_string(child) not in visited_states:
                 visited_states[to_string(child)] = 1  # Adds new state to visited states
-                new_node = Node(child, find_open_position(child), node.depth + 1, [],
-                                get_position(child))
+                new_path = copy.deepcopy(node.current_path)
+                new_path.append(to_string(child))
+                new_node = Node(child, find_open_position(child), node.depth + 1, current_path=new_path,
+                                heuristic=get_position(child))
                 heap.heappush(queue, (new_node.heuristic, count + 1, new_node))
                 count += 1
         if queue:
             node = heap.heappop(queue)
             node = node[2]
         else:
+            print(" ")
             print("Sorry, puzzle not solvable!")
+            print(" ")
             solved = False
             break
     end = timer()
     if solved:
-        for n in node.path:
-            print(n.state_array)
+        for n in node.current_path:
+            print(n)
         time = end - start
+        print("-------------------")
         print("A* Misplaced Tile solution found in: " + str(time) + " seconds at " + str(node.depth) + " depth")
         print("  ")
 
@@ -413,7 +430,8 @@ def get_manhattan(state):
     return manhattan
 
 
-# TODO
+# Returns position heuristic for puzzle peices not in
+# Goal State location
 def get_position(state):
     position = 0
     for i in range(3):
@@ -559,4 +577,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    begin()
