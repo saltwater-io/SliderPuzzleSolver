@@ -116,7 +116,7 @@ def begin():
 
     # User wants to generate a random puzzle to be solved
     if user_input == 'N':
-        print("A valid puzzle will now be generated for you. ")
+        print("A puzzle will now be generated for you. ")
         print("")
         # Generates puzzle
         puzzle = generate_puzzle()
@@ -134,8 +134,7 @@ def begin():
             '3': "Tile Position Heuristic.",
             '4': "Manhattan Distance Heuristic.",
             '5': "Enter a new puzzle.",
-            '6': "Run Comparison Test - in progress",
-            '7': "Quit."}
+            '6': "Quit."}
 
     while True:
         options = menu.keys()
@@ -182,7 +181,7 @@ def begin():
                     print(" ")
                     break
                 if user_input == 'N':
-                    print("A valid puzzle will now be generated for you. ")
+                    print("A puzzle will now be generated for you. ")
                     print("")
 
                     # Generates puzzle
@@ -192,8 +191,6 @@ def begin():
                     print(" ")
                     break
         elif selection == '6':
-            pass
-        elif selection == '7':
             break
         else:
             print("Please choose 1, 2, 3, 4, or 5 to quit! ")
@@ -247,11 +244,13 @@ def solve_queue(puzzle):
 
     if solved:
         print("Path: ")
+        path = ''
         for state in node.current_path:
-            print(state)
-
+            path = path+" "+state
+        print(path)
         print("------------")
         print("Breadth First Search solution found in: " + str(time) + " seconds at " + str(node.depth) + " depth.")
+        print('Nodes explored: ' + str(len(visited_states)))
         print("  ")
 
     else:
@@ -306,6 +305,7 @@ def solve_stack(puzzle):
     if solved:  # If puzzle if solved:
         print("------------")
         print("Depth First Search solution found in: " + str(time) + " seconds at depth: " + str(node.depth))
+        print('Nodes explored: ' + str(len(visited_states)))
         print(" ")
     else:
         print("DFS took: " + str(time) + " seconds, and explored " + str(len(visited_states)) + " nodes.")
@@ -365,16 +365,20 @@ def solve_manhattan(puzzle):
     time = end - start
     if solved:
         print("Path: ")
-        for state in node.current_path:  # Prints path of solution
-            print(state)
+        path = ""
+        for state in node.current_path:
+            path = path+" "+state
+        print(path)
 
         print("----------------")
         print("A* Misplaced tile solution found in: " + str(time) + " seconds at " + str(node.depth) + " depth")
+        print('Nodes explored: ' + str(len(visited_states)))
         print("  ")
 
     else:
         print("A* # Moves Search took: " + str(time) + " seconds, and explored " + str(len(visited_states)) + " nodes.")
         print(" ")
+    # print(len(visited_states))
 
 
 # Solves 3x3 slider puzzle using A* misplaced tile heuristic
@@ -425,16 +429,20 @@ def solve_position(puzzle):
             break
     end = timer()
     if solved:  # If puzzle has been solved, print path to solution
+        path = ''
         for state in node.current_path:
-            print(state)
+            path = path+" "+state
+        print(path)
         time = end - start
         print("-------------------")
         print("A* Misplaced Tile solution found in: " + str(time) + " seconds at " + str(node.depth) + " depth.")
+        print('Nodes explored: ' + str(len(visited_states)))
         print("  ")
     else:
         time = end - start
         print("A* Misplaced tile search took: " + str(time) + " seconds, and explored " + str(len(visited_states)) + " nodes.")
         print(" ")
+    # print(len(visited_states))
 
 
 # Function returns the current manhattan distance
